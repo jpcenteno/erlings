@@ -2,19 +2,17 @@
 
 -export([process_operation/2]).
 
-process_operation(Bank, {AccountNumber, withdraw, Amount}) ->
+process_operation(Bank, {AccountNumber, Operation, Amount}) ->
   Account = lists:keyfind(AccountNumber, 1, Bank),
   case Account of
     false -> {error, account_not_found};
-    _     -> withdraw(Account, Amount)
-  end;
-
-process_operation(Bank, {AccountNumber, deposit, Amount}) ->
-  Account = lists:keyfind(AccountNumber, 1, Bank),
-  case Account of
-    false -> {error, account_not_found};
-    _     -> deposit(Account, Amount)
+    _     -> process_operation_on_account(Account, Operation, Amount)
   end.
+
+process_operation_on_account(Account, withdraw, Amount) ->
+  withdraw(Account, Amount);
+process_operation_on_account(Account, deposit, Amount) ->
+  deposit(Account, Amount).
 
 withdraw({AccountNumber, AccountAmount}, WithdrawalAmount) when WithdrawalAmount =< AccountAmount ->
   {AccountNumber, AccountAmount - WithdrawalAmount};
