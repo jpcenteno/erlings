@@ -18,28 +18,16 @@ turn_off(Pid) ->
   Pid ! off.
 
 add(Cal, X, Y) ->
-  Cal ! {self(), {add, X, Y}},
-  receive
-    {Cal, Result} -> Result
-  end.
+  compute(Cal, add, X, Y).
 
 subtract(Cal, X, Y) ->
-  Cal ! {self(), {subtract, X, Y}},
-  receive
-    {Cal, Result} -> Result
-  end.
+  compute(Cal, subtract, X, Y).
 
 multiply(Cal, X, Y) ->
-  Cal ! {self(), {multiply, X, Y}},
-  receive
-    {Cal, Result} -> Result
-  end.
+  compute(Cal, multiply, X, Y).
 
 divide(Cal, X, Y) ->
-  Cal ! {self(), {divide, X, Y}},
-  receive
-    {Cal, Result} -> Result
-  end.
+  compute(Cal, divide, X, Y).
 
 %% -------------------------------------------------------------------------
 %% Calculator internals
@@ -48,17 +36,8 @@ divide(Cal, X, Y) ->
 calculator_server() ->
   receive
 
-    {Pid, {add, X, Y}} ->
-      Pid ! {self(), X + Y};
-
-    {Pid, {subtract, X, Y}} ->
-      Pid ! {self(), X - Y};
-
-    {Pid, {multiply, X, Y}} ->
-      Pid ! {self(), X * Y};
-
-    {Pid, {divide, X, Y}} ->
-      Pid ! {self(), X / Y};
+    {Pid, {Op, X, Y}} ->
+      Pid ! {self(), compute(Op, X, Y)};
 
     off ->
       io:format("Bye from ~p~n", [self()]);
@@ -67,3 +46,14 @@ calculator_server() ->
       io:format("I don't understand message ~w~n", [UnknownMessage]),
       calculator_server()
   end.
+
+compute(Cal, Op, X, Y) ->
+  Cal ! {self(), {Op, X, Y}},
+  receive
+    {Cal, Result} -> Result
+  end.
+
+compute(add, X, Y)      -> X + Y;
+compute(subtract, X, Y) -> X - Y;
+compute(multiply, X, Y) -> X * Y;
+compute(divide, X, Y)   -> X / Y.
